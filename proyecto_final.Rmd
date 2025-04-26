@@ -1,0 +1,18 @@
+---
+title: "Proyecto final módulo 2"
+author: "Equipo-11"
+date: "2025-04-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(DBI)
+library(dbplyr)
+library(RSQLite)
+
+conn <- DBI::dbConnect(RSQLite::SQLite(), "baseball.db")
+```
