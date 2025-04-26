@@ -14,5 +14,27 @@ library(DBI)
 library(dbplyr)
 library(RSQLite)
 
-conn <- DBI::dbConnect(RSQLite::SQLite(), "baseball.db")
+conn <- DBI::dbConnect(RSQLite::SQLite(), "vuelos.db")
 ```
+
+
+
+```{r}
+# Colaborador 1
+#  Número total de tablas
+tablas <- dbListTables(conn)
+length(tablas)
+
+#  Nombres de las tablas
+tablas
+
+#  Creamos un objeto en R por cada tabla
+for (tabla in tablas) {
+  assign(tabla, dbReadTable(conn, tabla))
+}
+
+#  Vista previa 
+lapply(tablas, function(x) head(get(x)))
+
+```
+
