@@ -38,3 +38,354 @@ lapply(tablas, function(x) head(get(x)))
 
 ```
 
+
+
+
+#    Segunda parte
+
+
+
+
+
+
+
+
+
+# ========================================
+# Subsección 2: Análisis de calidad del café
+# ========================================
+
+```{r}
+# En esta sección analizamos el conjunto de datos coffee_ratings.csv,
+# que contiene información detallada sobre muestras de café evaluadas
+# en diferentes atributos físicos y sensoriales.
+
+# Cargamos las librerías necesarias
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(lubridate)
+library(readr)
+library(ggplot2)
+library(visdat)   # Para visualización de datos faltantes
+
+#setwd("'/Users/bryantcanseco/Desktop/UNAM/Diplomados/Ciencia de Datos- UNAM/Modulo 2/Sin título/diplo-modulo2-equipo-11'")
+
+# Leemos el archivo CSV
+datos <- readr::read_csv("coffee_ratings.csv")
+
+
+```
+#Actividad 0: Análisis de valores faltantes
+```{r}
+# Analizamos los tipos de datos y la presencia de valores faltantes
+vis_dat(datos)
+vis_miss(datos)
+
+```
+Como parte del análisis exploratorio inicial, visualizamos los datos faltantes del conjunto coffee_ratings.csv mediante las funciones vis_dat() y vis_miss() de la librería {visdat}. Esta exploración fue esencial para entender la calidad y estructura del conjunto de datos antes de realizar transformaciones más complejas.
+
+Lo que observamos en vis_dat():
+Este gráfico nos permitió visualizar el tipo de dato (caracter o numérico) de cada columna y resaltar las ausencias mediante líneas grises.
+
+Identificamos que los datos numéricos están muy completos, especialmente aquellos usados para el análisis sensorial (aftertaste, acidity, body, etc.), lo cual validó su uso en las visualizaciones posteriores.
+
+En cambio, las variables tipo texto (character) presentan más ausencias, destacando farm_name, ico_number, mill y region.
+
+Lo que complementamos con vis_miss():
+Esta visualización nos ofreció el porcentaje exacto de valores faltantes por columna, confirmando que el conjunto tiene un 6.9% de celdas incompletas.
+
+Las columnas con mayor proporción de valores faltantes fueron:
+
+farm_name (~60%)
+mill (~26%)
+ico_number y altitude (~16%)
+processing_method (~13%)
+
+A pesar de ello, las variables más importantes para nuestras visualizaciones (como total_cup_points, species, acidity, aftertaste, body) tienen cobertura completa (0% de NA).
+
+#Actividad 1: Crear columna color2 con codificación por color
+```{r}
+datos <- datos |> 
+  mutate(
+    color2 = case_when(
+      is.na(color) ~ NA_character_,
+      color == "Green" ~ "#00FF66",
+      color == "Bluish-green" ~ "#CCEBC5",
+      color == "Blue-green" ~ "#BFFFFF",
+      TRUE ~ NA_character_
+    )
+  )
+
+```
+
+Codificamos visualmente la variable color con tonos representativos. Esto nos ayudará en las visualizaciones posteriores.
+
+
+# Actividad 2: Crear bag_weight2 como versión numérica de bag_weight
+```{r}
+
+# Extraemos solo los números de la columna 'bag_weight' y los convertimos a numérico
+datos <- datos |> 
+  mutate(
+    bag_weight2 = as.numeric(gsub("[^0-9.]", "", bag_weight))
+  )
+
+# Contamos cuántas observaciones tenían texto válido pero NO pudieron convertirse a número
+sum(is.na(datos$bag_weight2) & !is.na(datos$bag_weight))
+
+
+
+```
+
+
+
+#Actividad 3: Separar processing_method en method1 y method2
+```{r}
+datos <- datos |> 
+  mutate(
+    method1 = word(processing_method, 1, sep = " / "),
+    method2 = word(processing_method, 2, sep = " / ")
+  )
+
+# Observaciones que no pudieron dividirse bien
+sum(is.na(datos$method1) | is.na(datos$method2))
+#Dividimos los métodos de procesamiento en dos partes para un análisis más detallado, y cuantificamos los casos con ambigüedad.
+
+```
+
+
+#Actividad 4 – Separar expiration en expiration_day, expiration_month, expiration_year
+```{r}
+
+datos <- datos |> 
+  mutate(
+    # Quitamos sufijos como 'st', 'nd', 'rd', 'th'
+    expiration_clean = str_replace_all(expiration, "(\\d+)(st|nd|rd|th)", "\\1"),
+    
+    # Convertimos a formato fecha
+    expiration_date = mdy(expiration_clean),
+    
+    # Extraemos año, mes y día correctamente
+    expiration_year = year(expiration_date),
+    expiration_month = month(expiration_date),
+    expiration_day = day(expiration_date)
+  )
+
+
+```
+
+
+#Actividad 5 – Separar harvest_year en harvest_mes y harvest_anio
+```{r}
+
+library(dplyr)
+library(stringr)
+
+datos <- datos |> 
+  mutate(
+    # Extraemos el primer nombre de mes si existe (palabra entre A-Z)
+    harvest_mes = str_extract(harvest_year, regex("[A-Za-z]{3,}", ignore_case = TRUE)),
+
+    # Extraemos el primer año de 4 dígitos que aparezca
+    harvest_anio = str_extract(harvest_year, "\\d{4}"),
+    
+    # Convertimos el año a número (para evitar "character")
+    harvest_anio = as.numeric(harvest_anio)
+  )
+# Casos con texto en harvest_year pero sin año o mes detectado
+ambig <- datos |> 
+  filter(!is.na(harvest_year) & (is.na(harvest_anio) | is.na(harvest_mes)))
+
+nrow(ambig)  # <- Esto es el número de observaciones ambiguas
+
+
+```
+En esta actividad extraemos el mes (harvest_mes) y el año (harvest_anio) de la cosecha a partir del campo harvest_year, el cual contiene una gran diversidad de formatos.
+Usamos expresiones regulares para identificar el primer nombre de mes (como "July" o "March") y el primer número de cuatro dígitos que corresponde al año.
+Esta transformación permite realizar análisis más precisos por periodo de cosecha.
+Un total de r nrow(ambig) observaciones no pudieron descomponerse correctamente por contener abreviaturas, formatos atípicos o entradas sin estructura, como "4T/2010", "TEST", o "mmm"
+
+
+# Actividad 6 – Visualización con ggplot2
+```{r}
+
+# Visualizamos acidez vs. calidad y usamos color2 para pintar los puntos
+datos |> 
+  filter(!is.na(color2)) |>  # Excluimos NA porque no tienen color asignado
+  ggplot(aes(x = acidity, y = total_cup_points, color = color2)) +
+  geom_point(size = 2.5, alpha = 0.7) +
+  scale_color_identity() +  # Usa el color literal contenido en color2
+  labs(
+    title = "Relación entre acidez, calidad de taza y color del grano",
+    subtitle = "Los colores representan el tipo de grano: Green, Bluish-green, Blue-green",
+    x = "Acidez",
+    y = "Total de puntos en taza"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"))
+
+
+```
+En esta visualización relacionamos la acidez (acidity) con la puntuación total de taza (total_cup_points), diferenciando los puntos según el color del grano (color2).
+Observamos que 870 muestras están clasificadas como "Green" (#00FF66), mientras que 469 observaciones no tenían un color definido, por lo que no se visualizan con un código de color.
+Como resultado, todos los puntos coloreados aparecen en el mismo tono de verde. Aun así, el gráfico permite observar una clara concentración de muestras con acidez entre 6 y 8, y puntuaciones superiores a 80 puntos.
+
+
+# Actividad 7 – Visualización de densidad de bag_weight2 por species
+```{r}
+library(ggplot2)
+
+# Visualización refinada
+datos |> 
+  filter(bag_weight2 <= 150) |>  # Ajustamos el filtro para ver mejor el rango relevante
+  ggplot(aes(x = bag_weight2, fill = species, color = species)) +
+  geom_density(alpha = 0.4, size = 1.1) +
+  scale_fill_manual(values = c("#D95F02", "#1B9E77")) +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  labs(
+    title = "Distribución de pesos de bolsa por especie de café",
+    subtitle = "Visualización truncada hasta 150 kg para mayor claridad",
+    x = "Peso de bolsa (kg)",
+    y = "Densidad",
+    fill = "Especie",
+    color = "Especie"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold")
+  )
+
+
+
+```
+En esta visualización refinada mostramos la distribución del peso de las bolsas de café (bag_weight2) diferenciadas por especie (species).
+Para mejorar la legibilidad, truncamos visualmente el eje X a 150 kg, lo que permitió enfocarnos en el rango comercialmente más relevante.
+Se observa una marcada concentración alrededor de los 60 kg, especialmente en la especie Arabica. Esto es consistente con las prácticas comerciales estándar de exportación de café verde.
+El gráfico emplea una paleta de colores más contrastante y líneas suaves para facilitar su interpretación visual y presentación profesional.
+
+
+#Actividad 8 – Gráfico de total_cup_points vs. año/mes de expiración
+```{r}
+
+# Lista de países objetivo
+paises_objetivo <- c("Mexico", "Brazil", "Colombia", "Guatemala")
+
+# Visualización
+datos |> 
+  filter(country_of_origin %in% paises_objetivo,
+         !is.na(expiration_year),
+         !is.na(expiration_month)) |> 
+  mutate(exp_date = make_date(expiration_year, expiration_month, 1)) |> 
+  ggplot(aes(x = exp_date, y = total_cup_points, color = country_of_origin)) +
+  geom_jitter(width = 15, size = 2.3, alpha = 0.7) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(
+    title = "Relación entre fecha de expiración y calidad de taza",
+    subtitle = "Cafés de México, Brasil, Colombia y Guatemala",
+    x = "Fecha de expiración (año/mes)",
+    y = "Puntuación total de taza",
+    color = "País de origen"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+
+```
+En esta actividad exploramos la relación entre la fecha de expiración del café (expiration_year y expiration_month) y la puntuación total de calidad en taza (total_cup_points) para los cafés provenientes de México, Brasil, Colombia y Guatemala.
+Se transformó la fecha de expiración en un objeto de tipo fecha (exp_date), permitiendo analizarla en un eje temporal.
+La gráfica muestra que las puntuaciones se concentran mayoritariamente entre 80 y 85 puntos, independientemente del país y del año de expiración.
+Aunque no se observan tendencias claras o patrones temporales fuertes, el análisis permite identificar cafés con puntajes altos o bajos en momentos particulares del tiempo.
+La visualización también pone en evidencia que México es el país con más registros en este subconjunto.
+
+
+# Actividad 9 – Relación entre mes de expiración y altitud (para cafés 2016–2017 de 4 países)
+```{r}
+
+# Definimos los países que nos interesan analizar
+paises_objetivo <- c("Mexico", "Brazil", "Colombia", "Guatemala")
+
+# Filtramos el conjunto de datos original
+# Solo conservamos los registros de los países seleccionados,
+# con año de expiración 2016 o 2017,
+# y que no tengan datos faltantes en las columnas de altitud ni en el mes de expiración.
+datos_filtrados <- datos |> 
+  filter(
+    country_of_origin %in% paises_objetivo,
+    expiration_year %in% c(2016, 2017),
+    !is.na(expiration_month),
+    !is.na(altitude_low_meters),
+    !is.na(altitude_high_meters),
+    !is.na(altitude_mean_meters)
+  )
+
+# Reorganizamos el dataset para facilitar la visualización
+# Convertimos las columnas de altitud a formato "long" para usar facet_wrap
+datos_long <- datos_filtrados |> 
+  pivot_longer(
+    cols = c(altitude_low_meters, altitude_high_meters, altitude_mean_meters),
+    names_to = "tipo_altitud",
+    values_to = "valor_altitud"
+  )
+
+# Visualizamos los datos con boxplots por mes de expiración y tipo de altitud
+ggplot(datos_long, aes(x = factor(expiration_month), y = valor_altitud, fill = tipo_altitud)) +
+  geom_boxplot(alpha = 0.7, outlier.color = "red", outlier.size = 1.5) +
+  facet_wrap(~ tipo_altitud, scales = "free_y") +  # Un panel por tipo de altitud
+  labs(
+    title = "Relación entre mes de expiración y altitud (2016–2017)",
+    subtitle = "Cafés de México, Brasil, Colombia y Guatemala",
+    x = "Mes de expiración",
+    y = "Altitud (metros)",
+    fill = "Tipo de altitud"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+
+```
+Las tres dimensiones de altitud (low, high, mean) muestran una distribución relativamente constante a lo largo de los meses, lo cual sugiere que la altitud del cultivo no varía drásticamente con el mes de expiración.
+
+Sin embargo, hay algunos outliers interesantes en los meses de mayo, julio y septiembre, especialmente en la altitud más alta (altitude_high_meters). Estos podrían estar asociados a cafés de regiones montañosas específicas o a errores de captura de datos.
+
+Visualmente, el rango intercuartílico parece ser más estrecho en los meses finales del año, lo que podría indicar una menor variabilidad en altitud en cafés que expiran en esos meses.
+
+Las altitudes promedios (altitude_mean_meters) muestran una tendencia central alrededor de 1200–1500 metros, lo cual coincide con altitudes típicas de producción de cafés de alta calidad.
+
+
+#Actividad 10: Relación entre aftertaste, acidity, body y species
+```{r}
+# Cargamos la librería para gráficos multivariados
+library(GGally)
+
+# Creamos el gráfico multivariado
+datos |> 
+  select(aftertaste, acidity, body, species) |> 
+  filter(!is.na(species)) |> 
+  ggpairs(aes(color = species, alpha = 0.5)) +
+  theme_minimal()
+
+```
+Para esta actividad decidimos utilizar la función ggpairs() de la librería {GGally}, ya que permite observar de forma simultánea:
+
+Las correlaciones numéricas entre variables continuas.
+
+La distribución individual de cada variable.
+
+La relación cruzada de variables por especie de grano, facilitando la diferenciación por color.
+
+Las correlaciones entre aftertaste, acidity y body son altas y positivas en general (mayores a 0.7), especialmente dentro de la especie Arabica.
+
+Se observa claramente que la especie Arabica domina la muestra, tanto en cantidad como en la intensidad de los atributos sensoriales.
+
+Aunque la especie Robusta está subrepresentada en la base de datos, su comportamiento es visiblemente diferente: menor variabilidad y puntuaciones más concentradas.
+
+El patrón de distribuciones normales truncadas sugiere una buena homogeneidad de los datos sensoriales, al menos para la especie Arabica.
+
+
