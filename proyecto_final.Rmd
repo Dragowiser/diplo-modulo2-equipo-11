@@ -58,7 +58,8 @@ setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data
 
 
 ```{r Data}
-setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data")
+
+setwd("C:/Users/ferna/Documents/Diplomado_Data_Sience/Proyectos/diplo-modulo2-equipo-11/Data")
 #setwd("/Users/bryantcanseco/Desktop/UNAM/Diplomados/Ciencia de Datos- UNAM/diplo-modulo2-equipo-11/Data")
 conn <- DBI::dbConnect(RSQLite::SQLite(), "vuelos.db")
 
@@ -88,7 +89,164 @@ lapply(tablas, function(x) head(get(x)))
 
 
 
-#    Segunda parte
+```{r ExploracionBaseDatos}
+
+dbListTables(conn)
+
+# Leyendo nuestras tablas como datafrmaes, para poder trabajar mejor con ellos
+aerolineas <- dbReadTable(conn, "aerolineas")
+aeropuertos <- dbReadTable(conn, "aeropuertos")
+aviones <- dbReadTable(conn, "aviones")
+clima <- dbReadTable(conn, "clima")
+vuelos <- dbReadTable(conn, "vuelos")
+
+
+```
+
+
+Haciendo una analisis preliminar de los datos, podemos ver que tenemos 5 tablas en nuestra base de datos, aerolineas, aeropuertos, aviones, clima y vuelos.
+En donde:
+
+
+La tabla `airlines` contiene información sobre las aerolíneas,  donde:
+
+- **carrier**: Abreviación o código de la aerolínea.
+- **name**: Nombre completo de la aerolínea.
+
+La tabla `aeropuertos` contiene información de diferentes aeropuertos, donde:
+
+- **faa**: Código identificador del aeropuerto.
+- **name**: Nombre del aeropuerto.
+- **lat**: Latitud del aeropuerto.
+- **lon**: Longitud del aeropuerto.
+- **alt**: Altitud sobre el nivel del mar (en pies).
+- **tz**: Zona horaria numérica respecto a UTC.
+- **dst**: Estado del horario de verano (A = activo).
+- **tzone**: Zona horaria en formato texto (por ejemplo, "America/New_York").
+
+
+La tabla `planes` describe las características de los aviones, donde:
+
+- **tailnum**: Matrícula del avión.
+- **year**: Año de fabricación.
+- **type**: Tipo de aeronave.
+- **manufacturer**: Fabricante del avión.
+- **model**: Modelo del avión.
+- **engines**: Número de motores.
+- **seats**: Número de asientos disponibles.
+- **speed**: Velocidad (puede contener valores NA).
+- **engine**: Tipo de motor (por ejemplo, Turbo-fan).
+
+La tabla `clima` contiene datos meteorológicos por hora en los aeropuertos, donde:
+
+- **origin**: Código del aeropuerto.
+- **year, month, day, hour**: Fecha y hora de la medición.
+- **temp**: Temperatura (°F).
+- **dewp**: Punto de rocío (°F).
+- **humid**: Humedad relativa (%).
+- **wind_dir**: Dirección del viento (en grados).
+- **wind_speed**: Velocidad del viento (mph).
+- **wind_gust**: Ráfaga máxima de viento (mph).
+- **precip**: Precipitación (pulgadas).
+- **pressure**: Presión atmosférica (milibares).
+- **visib**: Visibilidad (millas).
+- **time_hour**: Fecha y hora unificadas como objeto POSIXct.
+
+
+La tabla `vuelos` contiene datos sobre más de 300,000 vuelos desde NYC en el año 2013. Las variables principales incluyen:
+
+- **year, month, day**: Año, mes y día del vuelo.
+- **dep_time**: Hora real de salida (formato HHMM).
+- **sched_dep_time**: Hora programada de salida.
+- **dep_delay**: Retraso en la salida (en minutos).
+- **arr_time**: Hora real de llegada.
+- **sched_arr_time**: Hora programada de llegada.
+- **arr_delay**: Retraso en la llegada (en minutos).
+- **carrier**: Código de la aerolínea (relacionado con `airlines`).
+- **flight**: Número del vuelo.
+- **tailnum**: Matrícula del avión (relacionado con `planes`).
+- **origin**: Aeropuerto de origen.
+- **dest**: Aeropuerto de destino.
+- **air_time**: Tiempo de vuelo (en minutos).
+- **distance**: Distancia recorrida (en millas).
+- **hour, minute**: Hora y minuto extraídos de la hora programada.
+- **time_hour**: Marca temporal POSIXct que representa la hora del vuelo.
+
+
+
+## Usando visadat para ver los datos perdidos
+
+
+```{r}
+# AEROLINEAS: estructura y valores faltantes
+vis_dat(aerolineas)
+vis_miss(aerolineas)
+```
+
+```{r}
+# AEROPUERTOS: estructura y valores faltantes
+vis_dat(aeropuertos)
+vis_miss(aeropuertos)
+```
+
+```{r}
+# AVIONES: estructura y valores faltantes
+vis_dat(aviones)
+vis_miss(aviones)
+```
+
+```{r}
+# CLIMA: estructura y valores faltantes
+vis_dat(clima)
+vis_miss(clima)
+```
+
+
+Para trabajar con los datos de vuelos haremos un muestro ya que tenemos demasiados datos, tenemos `r length(vuelos$day) ` y la funcion `vis_dat` no puede con tanto, por lo que tomaremos una muestra de 10,000 filas para trabajar.
+
+
+```{r}
+# VUELOS: estructura y valores faltantes
+
+vuelos_muestra <- slice_sample(vuelos, n = 5000)
+
+vis_dat(vuelos_muestra)
+vis_miss(vuelos_muestra)
+```
+
+
+
+
+# Vuelos de NYC
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# Utilizaremos las tablas de la base de datos vuelos.db que incluye información de:
+# 
+# - flights: Detalles de todos los vuelos que salieron de NYC (JFK, LGA, EWR) en 2013.
+# - airlines: Códigos y nombres de aerolíneas.
+# - airports: Información sobre aeropuertos, incluyendo ubicación.
+# - planes: Datos sobre aeronaves, incluyendo año de fabricación.
+# - weather: Datos meteorológicos por hora para los aeropuertos de NYC.
+
+
+knitr::kable(head(aeropuertos), caption = "Aeropuertos")
+knitr::kable(head(aerolineas), caption = "Aerolíneas")
+knitr::kable(head(aviones), caption = "Aviones")
+knitr::kable(head(clima), caption = "Clima por hora")
+knitr::kable(head(vuelos), caption = "Vuelos salientes")
+
+
+
+```
+
+
+# ========================================
+# Subsección 1: Vuelos de NYC
+# ========================================
+
+
+
 
 
 
