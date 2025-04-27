@@ -247,6 +247,339 @@ knitr::kable(head(vuelos), caption = "Vuelos salientes")
 
 
 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué aerolínea tuvo el mayor retraso promedio en la salida en 2013?
+
+vuelos |> 
+  filter(year == 2013) |>
+  group_by(carrier) |> 
+  summarise(retraso_promedio = mean(dep_delay, na.rm = TRUE)) |>
+  arrange(desc(retraso_promedio)) 
+
+
+aerolineas |> 
+  filter(carrier == "F9") |> 
+  select(name)
+
+```
+
+#### **¿Qué aerolínea tuvo el mayor retraso promedio en la salida en 2013?** 
+
+La aerolínea Frontier Airlines (F9) tuvo el mayor retraso promedio en la salida en 2013, con un retraso promedio de 20.21 minutos.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué día de la semana tuvo más vuelos retrasados en promedio?
+
+vuelos <- vuelos %>% #Modificando los datos de vuelo 
+  mutate(fecha = make_date(year, month, day),
+         dia_semana = wday(fecha, label = TRUE, abbr = TRUE))
+
+vuelos %>%
+  group_by(dia_semana) %>% #Agrupando por dia de la semana y sacando promedio 
+  summarise(retraso_promedio = mean(dep_delay, na.rm = TRUE)) %>%
+  arrange(desc(retraso_promedio))
+
+
+```
+
+####  **¿Qué día de la semana tuvo más vuelos retrasados en promedio?**
+
+La aerolinea con mas retrasos en promedio fue el Jueves, con un retraso promedio de 16.149 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Cuál es la distribución de los retrasos en la salida para cada aeropuerto?
+
+vuelos |> group_by(origin) %>% # Agrupando por aeropuerto de origen
+  summarise(retraso_promedio = mean(dep_delay, na.rm = TRUE)) %>%
+  arrange(desc(retraso_promedio))
+
+
+```
+####  **¿Cuál es la distribución de los retrasos en la salida para cada aeropuerto?**
+ 
+ El aeropuerto con mayor retraso es el EWR, con un retraso en promedio de 15.10 minutos
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué proporción de vuelos se retrasaron más de 30 minutos?
+
+vuelos |> 
+  filter(dep_delay > 30) |> 
+  summarise(proporcion_retraso = n() / nrow(vuelos)) |> 
+  mutate(proporcion_retraso = round(proporcion_retraso * 100, 2))
+```
+#### **¿Qué proporción de vuelos se retrasaron más de 30 minutos?**
+
+La proporcion o la probabilidad de que un vuelo se retrase mas de 30 minutos es de 14.34%
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué destinos tuvieron los mayores retrasos promedio en la llegada?
+
+vuelos |> group_by(dest) %>% # Agrupando por aeropuerto de origen
+  summarise(retraso_promedio = mean(arr_delay, na.rm = TRUE)) %>% #Retraso en llegada
+  arrange(desc(retraso_promedio))
+
+
+aeropuertos |> 
+  filter(faa == "CAE") |> 
+  select(name)
+```
+#### **¿Qué destinos tuvieron los mayores retrasos promedio en la llegada?**
+
+El aeropuerto con mayor retraso en la llegada es el CAE (Columbia Metropolitan), con un retraso promedio de 41.76 minutos.
+
+
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué aerolíneas tuvieron el mayor número de vuelos desde NYC?
+vuelos |> 
+  filter(origin == c("JFK", "LGA", "EWR")) |>
+  group_by(carrier) |>
+  summarise(num_vuelos = n()) |>
+  arrange(desc(num_vuelos)) 
+
+
+aerolineas |> 
+  filter(carrier == "UA") |> 
+  select(name)
+
+```
+
+#### **¿Qué aerolíneas tuvieron el mayor número de vuelos desde NYC?**
+
+La aerolínea United Airlines (UA) tuvo el mayor número de vuelos desde NYC, con un total de 19,487 vuelos.
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Cómo varía el retraso de los vuelos según el fabricante de la aeronave?
+
+vuelos |>
+  left_join(aviones, by = "tailnum") |>
+  group_by(manufacturer) |>
+  summarise(retraso_promedio = mean(dep_delay, na.rm = TRUE)) |>
+  arrange(desc(retraso_promedio)) 
+
+
+```
+
+
+#### **¿Cómo varía el retraso de los vuelos según el fabricante de la aeronave?**
+El fabricante de aeronaves con mayor retraso promedio en la salida es AGUSTA SPA , con un retraso promedio de 32.45 minutos.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Los aviones más antiguos tienen más retrasos?
+
+vuelos |>
+  left_join(aviones, by = "tailnum") |>
+  group_by(year.y) |>
+   summarise(retraso_promedio = mean(dep_delay, na.rm = TRUE)) |>
+  arrange(desc(retraso_promedio)) 
+
+
+aviones |> arrange(year) |> 
+  select(year) |> 
+  head(10)
+
+
+  
+```
+
+#### **¿Los aviones más antiguos tienen más retrasos?**
+
+No, aunque los avinoes con mas retraso son del año 1972 y 1978, tambien los aviones con menos retrason son del año 1965 y 1977, por lo que al parecer la antiguiedad del avion, no se ve reflejado en el retraso de los aviones 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué modelos de aviones se utilizan con mayor frecuencia en vuelos desde NYC?
+
+vuelos |>
+  left_join(aviones, by = "tailnum") |>
+   filter(origin == c("JFK", "LGA", "EWR"), !is.na(model)) |>
+   group_by(model) |>
+   summarise(num_vuelos = n()) |>
+   arrange(desc(num_vuelos))
+  
+
+```
+
+#### **¿Qué modelos de aviones se utilizan con mayor frecuencia en vuelos desde NYC?**
+
+Los modelos que mas se usan en los aeropuertos de NYC son:
+
+- A320-232 con un total de 15,194	 vuelos
+- EMB-145LR con un total de 9,448 vuelos
+- ERJ 190-100 IGW con un total de 7,948 vuelos
+
+
+
+
+#### **¿Cuál es la distancia promedio de vuelo por aerolínea?**
+
+El promedio de distancia de vuelo por aerolínea es el siguiente:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Cuál es la distancia promedio de vuelo por aerolínea?
+
+vuelos |>
+  left_join(aerolineas, by = "carrier") |>
+  group_by(name) |>
+  summarise(distancia_promedio = mean(distance, na.rm = TRUE)) |>
+  arrange(desc(distancia_promedio)) |>
+  knitr::kable(digits = 2, caption = "Distancia promedio de vuelo por aerolínea")
+
+
+
+
+
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué aeropuerto de NYC tuvo el mayor número de retrasos en la salida?
+
+vuelos |>
+  filter(origin %in% c("JFK", "LGA", "EWR")) |>
+  group_by(origin) |>
+  summarise(num_retrasos = sum(dep_delay > 0, na.rm = TRUE)) |>
+  arrange(desc(num_retrasos)) 
+
+```
+#### **¿Qué aeropuerto de NYC tuvo el mayor número de retrasos en la salida?**
+
+El aeropuerto de NYC con el mayor número de retrasos en la salida es el EWR	, con un total de 52,711 retrasos.
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué aeropuerto tuvo el menor tiempo promedio de taxi-out?
+
+vuelos |>
+  group_by(origin) |>
+  summarise(tiempo_promedio_taxi_out = mean(dep_delay, na.rm = TRUE)) |>
+  arrange(tiempo_promedio_taxi_out)
+
+
+```
+#### **¿Qué aeropuerto tuvo el menor tiempo promedio de taxi-out?**
+
+El aeropuerto con el menor tiempo promedio de taxi-out es el LGA, con un tiempo promedio de 10.34 minutos.
+
+
+#### **¿Qué porcentaje de vuelos que salen de cada aeropuerto de NYC fueron puntuales?**
+
+El porcentaje de vuelos puntuales que salen de cada aeropuerto de NYC es el siguiente:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué porcentaje de vuelos que salen de cada aeropuerto de NYC fueron puntuales?
+
+vuelos |>
+  group_by(origin) |>
+  summarise(pocentaje_puntualidad = sum(dep_delay == 0, na.rm = TRUE) / n() * 100) |>
+   knitr::kable(digits = 2, caption = "Porcentaje de vuelos que salen a tiempo")
+
+```
+
+Podemos observar que el porcentajes de vuelo en todos los aeropuertos es muy bajo, lo que puede indicar una saturacion en los aeropuertos de NYC.
+
+#### **¿Qué aeropuertos de destino tienen el mayor retraso promedio en la llegada para vuelos desde NYC?**
+
+Lista de los 10 aeropuertos con el mayor retraso promedio de llegada para vuelos desde NYC:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Qué aeropuertos de destino tienen el mayor retraso promedio en la llegada para vuelos desde NYC?
+vuelos |>
+  filter(origin %in% c("JFK", "LGA", "EWR")) |>
+  left_join(aeropuertos, by = c("dest" = "faa")) |>
+  group_by(name) |>
+  summarise(retraso_promedio = mean(arr_delay, na.rm = TRUE)) |>
+  arrange(desc(retraso_promedio)) |> head(10) |>
+  knitr::kable(digits = 2, caption = "Retrasos promedio de llegada por aeropuerto de destino")
+
+
+```
+
+
+#### **¿Cómo varían los retrasos en la salida según la hora del día en cada aeropuerto de NYC?**
+
+Tabla con 10 elementos con los retrasos promedio en la salida según la hora del día en cada aeropuerto de NYC
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Cómo varían los retrasos en la salida según la hora del día en cada aeropuerto de NYC?
+
+vuelos |>
+  filter(origin %in% c("JFK", "LGA", "EWR")) |>
+  group_by(hour) |>
+  summarise(retraso_promedio = mean(dep_delay, na.rm = TRUE)) |> 
+  arrange(desc(retraso_promedio)) |> head(10) |>
+   knitr::kable(digits = 2, caption = "Retrasos por hora")
+```
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Cuál es la correlación entre la velocidad del viento y los retrasos en la salida?
+vuelos |> 
+  left_join(clima, by = "time_hour") |>
+  summarise(correlacion = cor(wind_speed, dep_delay, use = "complete.obs"))
+
+```
+
+#### **¿Cuál es la correlación entre la velocidad del viento y los retrasos en la salida?**
+
+Se identifica una **correlación baja entre la velocidad del viento y los retrasos en la salida de los vuelos**, con un coeficiente de **0.054**. Este valor indica una relación prácticamente nula, lo cual sugiere que, en condiciones normales, **la velocidad del viento no afecta significativamente las operaciones aéreas**. Es probable que solo **condiciones extremas**, como vientos huracanados o tormentas severas, puedan generar impactos reales en los procesos de **despegue o aterrizaje**.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Los vuelos experimentan más retrasos en días con lluvias intensas?
+vuelos |> 
+  left_join(clima, by = "time_hour") |>
+  summarise(correlacion = cor(precip, dep_delay, use = "complete.obs"))
+```
+#### **¿Los vuelos experimentan más retrasos en días con lluvias intensas?**
+
+Se observa que la **correlación entre los retrasos en los vuelos y la cantidad de lluvia es de 0.085**, lo que indica una **relación muy débil** entre ambas variables. Este resultado sugiere que, en condiciones normales, **la lluvia no representa un factor determinante** en los retrasos. Para que el clima tenga un impacto significativo, **serían necesarias condiciones extremas**, como **tormentas severas o huracanes**, que efectivamente puedan impedir las operaciones de despegue o aterrizaje de las aeronaves.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Cómo afecta la temperatura a los retrasos de los vuelos?
+vuelos |> 
+  left_join(clima, by = "time_hour") |>
+  summarise(correlacion = cor(temp, dep_delay, use = "complete.obs"))
+```
+
+#### **¿Cómo afecta la temperatura a los retrasos de los vuelos?**
+
+
+De manera similar, **no se observa una correlación significativa entre la temperatura y los retrasos en los vuelos**, ya que el coeficiente de correlación es de apenas **0.0601**. Este valor indica una **relación prácticamente nula**, lo que sugiere que la **temperatura ambiental no influye de forma directa** en los retrasos registrados. Por tanto, puede descartarse como un factor determinante en este contexto.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿Cómo afectan los niveles de visibilidad a los retrasos en la llegada?
+vuelos |> 
+  left_join(clima, by = "time_hour") |>
+  summarise(correlacion = cor(visib, arr_delay, use = "complete.obs"))
+```
+
+#### **¿Cómo afectan los niveles de visibilidad a los retrasos en la llegada?**
+
+En este caso se observa una **correlación negativa de -0.131**, ligeramente mayor en magnitud que en el análisis anterior, aunque sigue sin ser estadísticamente significativa. Este resultado sugiere que, si bien la **visibilidad** puede tener algún efecto sobre los **retrasos en la llegada de los vuelos**, dicho efecto es **limitado**.
+
+Esto puede explicarse porque los aeropuertos modernos operan con **sistemas tecnológicos avanzados de navegación y aterrizaje**, que **no dependen exclusivamente de la visibilidad** directa del piloto. Por lo tanto, la baja visibilidad podría contribuir en cierta medida a los retrasos, pero **no constituye una causa principal**.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# ¿La alta humedad se relaciona de alguna manera con los tiempos de taxi-out más largos?
+vuelos |> 
+  left_join(clima, by = "time_hour") |>
+  summarise(correlacion = cor(humid, dep_delay, use = "complete.obs"))
+```
+#### **¿La alta humedad se relaciona de alguna manera con los tiempos de taxi-out más largos?**
+
+La correlación entre la **humedad** y el **retraso en la llegada de los vuelos** no resulta significativa, ya que el coeficiente obtenido es de apenas **0.116**. Este valor sugiere una **relación muy débil** entre ambas variables, lo cual permite concluir que, en este caso, **la humedad ambiental no tiene un efecto relevante en los retrasos de los vuelos**.
+
+
+
 
 
 
