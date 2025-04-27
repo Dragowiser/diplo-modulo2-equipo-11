@@ -183,23 +183,38 @@ vis_dat(aerolineas)
 vis_miss(aerolineas)
 ```
 
+
+
 ```{r}
 # AEROPUERTOS: estructura y valores faltantes
 vis_dat(aeropuertos)
 vis_miss(aeropuertos)
 ```
 
+
+
 ```{r}
 # AVIONES: estructura y valores faltantes
 vis_dat(aviones)
 vis_miss(aviones)
+
+aviones_sinEspeed <- aviones |> select(-speed)
+vis_dat(aviones_sinEspeed)
+vis_miss(aviones_sinEspeed)
+
 ```
+
 
 ```{r}
 # CLIMA: estructura y valores faltantes
 vis_dat(clima)
 vis_miss(clima)
+
+clima_sinEwind_gust <- clima |> select(-wind_gust)
+vis_miss(clima_sinEwind_gust)
 ```
+
+
 
 
 Para trabajar con los datos de vuelos haremos un muestro ya que tenemos demasiados datos, tenemos `r length(vuelos$day) ` y la funcion `vis_dat` no puede con tanto, por lo que tomaremos una muestra de 10,000 filas para trabajar.
@@ -214,7 +229,15 @@ vis_dat(vuelos_muestra)
 vis_miss(vuelos_muestra)
 ```
 
+Como conclusión, podemos observar que nuestra base de datos casi no tiene valores NA. En la tabla **aerolíneas**, no tenemos ningún NA; en la tabla **aeropuertos**, el número de NAs es muy bajo, menor al **0.1%**, por lo que podríamos pasarlo por alto al tratarse de una cantidad insignificante.
 
+En la tabla **aviones**, aunque el porcentaje total de NAs es de **11.3%**, podemos notar que estos provienen de la columna **speed**. Si eliminamos dicha columna, el número total de NAs se reduce a **0.3%**, lo cual nos permite seguir trabajando sin ningún problema.
+
+De igual forma, en la tabla **clima**, el porcentaje más alto de NAs se encuentra en la columna **wind_gust**, con un **80%** de valores faltantes. Por lo tanto, sería conveniente eliminar esta columna, ya que no aportaría información útil al análisis. Una vez eliminada, el porcentaje de NAs en la tabla se reduce a **0.9%**, lo cual es aceptable para continuar analizando los datos.
+
+Por último, la tabla de **vuelos** presenta una cantidad de NAs de **0.7%**, lo cual es muy bajo.
+
+En conclusión, nuestras tablas están muy completas y no tendremos problemas al trabajar con ellas. No será necesario imputar los datos faltantes; simplemente podemos omitir esos NAs en nuestro análisis.
 
 
 # Vuelos de NYC
