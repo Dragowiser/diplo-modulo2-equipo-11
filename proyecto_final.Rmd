@@ -5,16 +5,63 @@ date: "2025-04-26"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-```{r}
+# Integrantes:
+
++ Gomez Santiago Diego Rol: Administrador
++ Bryant Canseco Hernandez Rol: Colaborador 1
++ Alvarado Palacios Fernando  Rol: Colaborador 2
+
+
+
+```{r setup, include=FALSE}
+# Empezamos limpiando nuestro ambiente
+
+
+# Configuración global de los bloques de código (chunk's)
+knitr::opts_chunk$set(
+	echo = FALSE,
+	fig.align = "center",
+	fig.dim = c(5.0, 4.0),
+	fig.pos = "H",
+# Agregamos configuraciones para evitar mensajes de advertencias y de errores en el archivo
+	message = FALSE,
+	warning = FALSE,
+	error = F
+)
+
+# Librerias a usar en este proyecto 
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(countrycode)
+library(naniar)
+library(esquisse)
+library(knitr)   #Libreria para hacer tabalas mas bonitas
+library(patchwork) #Orden de las librerias
 library(DBI)
 library(dbplyr)
 library(RSQLite)
+library(visdat) #Ver datos faltantes en un df
+library(lubridate)
 
+
+
+# Rutas que vamos a trabajar, cada quien tendra una ruta diferente
+
+setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data")
+#setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_1/Proyecto_M1_P1/colaboracion-git-equipo-11/Data")
+#setwd("/Users/bryantcanseco/Desktop/UNAM/Diplomados/Ciencia de Datos- UNAM/diplo-modulo2-equipo-11/Data")
+
+```
+
+
+
+```{r Data}
+setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data")
+#setwd("/Users/bryantcanseco/Desktop/UNAM/Diplomados/Ciencia de Datos- UNAM/diplo-modulo2-equipo-11/Data")
 conn <- DBI::dbConnect(RSQLite::SQLite(), "vuelos.db")
+
 ```
 
 
