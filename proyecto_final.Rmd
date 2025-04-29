@@ -34,6 +34,7 @@ knitr::opts_chunk$set(
 library(dplyr)
 library(readr)
 library(ggplot2)
+library(skimr)
 library(countrycode)
 library(naniar)
 library(esquisse)
@@ -49,8 +50,8 @@ library(lubridate)
 
 # Rutas que vamos a trabajar, cada quien tendra una ruta diferente
 
-setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data")
-#setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_1/Proyecto_M1_P1/colaboracion-git-equipo-11/Data")
+#setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data")
+setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_2/diplo-modulo2-equipo-11")
 #setwd("/Users/bryantcanseco/Desktop/UNAM/Diplomados/Ciencia de Datos- UNAM/diplo-modulo2-equipo-11/Data")
 
 ```
@@ -59,7 +60,8 @@ setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data
 
 ```{r Data}
 
-setwd("C:/Users/ferna/Documents/Diplomado_Data_Sience/Proyectos/diplo-modulo2-equipo-11/Data")
+#setwd("C:/Users/ferna/Documents/Diplomado_Data_Sience/Proyectos/diplo-modulo2-equipo-11/Data")
+setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_2/diplo-modulo2-equipo-11/Data")
 #setwd("/Users/bryantcanseco/Desktop/UNAM/Diplomados/Ciencia de Datos- UNAM/diplo-modulo2-equipo-11/Data")
 conn <- DBI::dbConnect(RSQLite::SQLite(), "vuelos.db")
 
@@ -214,6 +216,85 @@ clima_sinEwind_gust <- clima |> select(-wind_gust)
 vis_miss(clima_sinEwind_gust)
 ```
 
+```{r}
+# AEROLINEAS
+# Tipo de variables
+aerolineas |> skimr::skim() |>
+  dplyr::select(skim_variable, skim_type) |>
+  dplyr::distinct()
+
+# Resumen de variables numéricas
+aerolineas |> skimr::skim() |>
+  dplyr::filter(skim_type == "numeric")
+
+# Resumen de variables categóricas
+aerolineas |> skimr::skim() |>
+  dplyr::filter(skim_type == "character")
+```
+
+```{r}
+# AEROPUERTOS
+# Tipo de variables
+aeropuertos |> skimr::skim() |>
+  dplyr::select(skim_variable, skim_type) |>
+  dplyr::distinct()
+
+# Resumen de variables numéricas
+aeropuertos |> skimr::skim() |>
+  dplyr::filter(skim_type == "numeric")
+
+# Resumen de variables categóricas
+aeropuertos |> skimr::skim() |>
+  dplyr::filter(skim_type == "character")
+```
+
+```{r}
+# AVIONES
+# Tipo de variables
+aviones |> skimr::skim() |>
+  dplyr::select(skim_variable, skim_type) |>
+  dplyr::distinct()
+
+# Resumen de variables numéricas
+aviones |> skimr::skim() |>
+  dplyr::filter(skim_type == "numeric")
+
+# Resumen de variables categóricas
+aviones |> skimr::skim() |>
+  dplyr::filter(skim_type == "character")
+```
+
+```{r}
+# CLIMA
+# Tipo de variables
+clima |> skimr::skim() |>
+  dplyr::select(skim_variable, skim_type) |>
+  dplyr::distinct()
+
+# Resumen de variables numéricas
+clima |> skimr::skim() |>
+  dplyr::filter(skim_type == "numeric")
+
+# Resumen de variables categóricas
+clima |> skimr::skim() |>
+  dplyr::filter(skim_type == "character")
+```
+
+```{r}
+# VUELOS
+# Tipo de variables
+vuelos |> skimr::skim() |>
+  dplyr::select(skim_variable, skim_type) |>
+  dplyr::distinct()
+
+# Resumen de variables numéricas
+vuelos |> skimr::skim() |>
+  dplyr::filter(skim_type == "numeric")
+
+# Resumen de variables categóricas
+vuelos |> skimr::skim() |>
+  dplyr::filter(skim_type == "character")
+```
 
 
 
@@ -950,3 +1031,52 @@ Aunque la especie Robusta está subrepresentada en la base de datos, su comporta
 El patrón de distribuciones normales truncadas sugiere una buena homogeneidad de los datos sensoriales, al menos para la especie Arabica.
 
 
+
+# ============================================
+# Subsección 3: Analizando letras de canciones
+# ============================================
+```{r}
+# Descomprimiendo los archivos
+#utils::unzip("canciones.zip")
+```
+
+```{r}
+# Preparando los dataframes de cada artista
+arianagrande <- read_csv(file.path("canciones/ArianaGrande.csv"))
+beyonce <- read_csv(file.path("canciones/Beyonce.csv"))
+billieeilish <- read_csv(file.path("canciones/BillieEilish.csv"))
+bts <- read_csv(file.path("canciones/BTS.csv"))
+drake <- read_csv(file.path("canciones/Drake.csv"))
+edsheeran <- read_csv(file.path("canciones/EdSheeran.csv"))
+eminem <- read_csv(file.path("canciones/Eminem.csv"))
+justinbieber <- read_csv(file.path("canciones/JustinBieber.csv"))
+ladygaga <- read_csv(file.path("canciones/LadyGaga.csv"))
+postmalone <- read_csv(file.path("canciones/PostMalone.csv"))
+rihanna <- read_csv(file.path("canciones/Rihanna.csv"))
+```
+
+
+#Actividad 1: Haga una nube de palabras de las canciones del último disco de Ariana Grande, Beyonce, Billie Eilish, Rihanna y Lady Gaga por separado, i.e. una nube por artista.
+```{r}
+
+```
+
+#Actividad 2: Haga una nube de palabras de las canciones del último disco de Ariana Grande, Beyonce, Billie Eilish, Rihanna y Lady Gaga combinados, i.e. una única nube.
+```{r}
+
+```
+
+#Actividad 3: Haga una nube de palabras de las canciones del último disco de Drake, Justin Bieber, Eminem, Ed Sheeran y Post Malone por separado, i.e. una nube por artista.
+```{r}
+
+```
+
+#Actividad 4: Haga una nube de palabras de las canciones del último disco de Drake, Justin Bieber, Eminem, Ed Sheeran y Post Malone combinados, i.e. una única nube.
+```{r}
+
+```
+
+#Actividad 5: Haga una nube de palabras de las canciones de los últimos 3 discos de BTS combinados, i.e. una única nube.
+```{r}
+
+```
