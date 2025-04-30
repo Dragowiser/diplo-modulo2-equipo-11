@@ -45,7 +45,9 @@ library(dbplyr)
 library(RSQLite)
 library(visdat) #Ver datos faltantes en un df
 library(lubridate)
-
+library(quanteda)
+library(quanteda.textplots)
+library(RColorBrewer) #Paleta de colores
 
 
 # Rutas que vamos a trabajar, cada quien tendra una ruta diferente
@@ -1042,38 +1044,231 @@ El patrón de distribuciones normales truncadas sugiere una buena homogeneidad d
 
 ```{r}
 # Preparando los dataframes de cada artista
-arianagrande <- read_csv(file.path("canciones/ArianaGrande.csv"))
-beyonce <- read_csv(file.path("canciones/Beyonce.csv"))
-billieeilish <- read_csv(file.path("canciones/BillieEilish.csv"))
-bts <- read_csv(file.path("canciones/BTS.csv"))
-drake <- read_csv(file.path("canciones/Drake.csv"))
-edsheeran <- read_csv(file.path("canciones/EdSheeran.csv"))
-eminem <- read_csv(file.path("canciones/Eminem.csv"))
-justinbieber <- read_csv(file.path("canciones/JustinBieber.csv"))
-ladygaga <- read_csv(file.path("canciones/LadyGaga.csv"))
-postmalone <- read_csv(file.path("canciones/PostMalone.csv"))
-rihanna <- read_csv(file.path("canciones/Rihanna.csv"))
+arianagrande <- read_csv(file.path("canciones/ArianaGrande.csv"), , show_col_types = FALSE)
+beyonce <- read_csv(file.path("canciones/Beyonce.csv"), show_col_types = FALSE)
+billieeilish <- read_csv(file.path("canciones/BillieEilish.csv"), show_col_types = FALSE)
+bts <- read_csv(file.path("canciones/BTS.csv"), show_col_types = FALSE)
+drake <- read_csv(file.path("canciones/Drake.csv"), show_col_types = FALSE)
+edsheeran <- read_csv(file.path("canciones/EdSheeran.csv"), show_col_types = FALSE)
+eminem <- read_csv(file.path("canciones/Eminem.csv"), show_col_types = FALSE)
+justinbieber <- read_csv(file.path("canciones/JustinBieber.csv"), show_col_types = FALSE)
+ladygaga <- read_csv(file.path("canciones/LadyGaga.csv"), show_col_types = FALSE)
+postmalone <- read_csv(file.path("canciones/PostMalone.csv"), show_col_types = FALSE)
+rihanna <- read_csv(file.path("canciones/Rihanna.csv"), show_col_types = FALSE)
+```
+
+```{r}
+# Cambiando la columna "Date" a formato de fecha para las actividades 1 y 2
+artistas_1 <- list(
+  arianagrande = arianagrande,
+  beyonce = beyonce,
+  billieeilish = billieeilish,
+  rihanna = rihanna,
+  ladygaga = ladygaga
+)
+
+artistas_1 <- lapply(artistas_1, function(df){
+  df |>
+    dplyr::mutate(Date = as.Date(Date)) |>
+    dplyr::arrange(desc(Date))
+})
+
+list2env(artistas_1, envir = .GlobalEnv)
+
+# Cambiando la columna "Date" a formato de fecha para las actividades 3 y 4
+artistas_2 <- list(
+  drake = drake,
+  justinbieber = justinbieber,
+  eminem = eminem,
+  edsheeran = edsheeran,
+  postmalone = postmalone
+)
+
+artistas_2 <- lapply(artistas_2, function(df){
+  df |>
+    dplyr::mutate(Date = as.Date(Date)) |>
+    dplyr::arrange(desc(Date))
+})
+
+list2env(artistas_2, envir = .GlobalEnv)
+
+#Cambiando la columna "Date" a formato de fecha para la activadad 5
+bts <- bts |> 
+  dplyr::mutate(Date = as.Date(Date)) |>
+  arrange(desc(Date))
 ```
 
 
-#Actividad 1: Haga una nube de palabras de las canciones del último disco de Ariana Grande, Beyonce, Billie Eilish, Rihanna y Lady Gaga por separado, i.e. una nube por artista.
+# Actividad 1: Haga una nube de palabras de las canciones del último disco de Ariana Grande, Beyonce, Billie Eilish, Rihanna y Lady Gaga por separado, i.e. una nube por artista.
 ```{r}
+# Definimos una función que genera la nube de palabras
+generar_nube <- function(df){
+  # Obteniendo el último álbum
+  ultimo_album <- df |>
+    dplyr::filter(!is.na(Album)) |>
+    head(1) |>
+    pull(Album)
+  
+  # Filtrando variables del último álbum
+  letras <- df |>
+    dplyr::filter(Album %in% ultimo_album) |>
+    pull(Lyric)
+  
+  letras <- gsub("'", "", letras)
+  
+  
+  artista <- df |>
+    dplyr::filter(Album %in% ultimo_album) |>
+    pull(Artist)
+  
+  
+  # Creando nube
+  nube <- letras |>
+    quanteda::tokens(remove_punt = TRUE, remove_numbers = TRUE, remove_separators = TRUE, remove_symbols = FALSE) |>
+    quanteda::tokens_tolower() |>
+    quanteda::tokens_remove(stopwords("english")) |>
+    quanteda::dfm()
+  
+  par(margin = c(t = 1.5,r = 1.5, b = 1.5, l = 1.5),
+      bg = "white",
+      family = "Times")
+
+  quanteda.textplots::textplot_wordcloud(nube,
+                    max_words = 40,
+                    color = brewer.pal(8, "Dark2"),
+                    min_count = 3,
+                    scale = c(6, 0.4),
+                    random_order = FALSE,
+                    rotation = 0.3,
+                    random_color = FALSE)
+
+  title(
+    main = paste("Nube de palabras", ultimo_album),
+    cex.main = 1.2,
+    font.main = 2,
+    col.main = "black",
+    line = 3
+    )
+  title(
+    sub = paste("Artista: ", artista),
+    cex.sub = 0.8,
+    font.sub = 3,
+    col.sub = "gray40",
+    line = 3
+  )
+}
+
+lapply(artistas_1, generar_nube)
 
 ```
 
 #Actividad 2: Haga una nube de palabras de las canciones del último disco de Ariana Grande, Beyonce, Billie Eilish, Rihanna y Lady Gaga combinados, i.e. una única nube.
 ```{r}
+# Obtenemos las letras combinadas
+letras_combinadas <- lapply(artistas_1, function(df) {
+  ultimo_album <- df |>
+    dplyr::filter(!is.na(Album)) |>
+    head(1) |>
+    pull(Album)
 
+  letras <- df |>
+    dplyr::filter(Album %in% ultimo_album) |>
+    pull(Lyric)
+
+  letras <- gsub("'", "", letras)
+  return(letras)
+}) |> unlist()
+
+# Creamos la nube combinada
+nube_combinada <- letras_combinadas |>
+  corpus() |>
+  tokens(remove_punct = TRUE, remove_numbers = TRUE, remove_separators = TRUE, remove_symbols = TRUE) |>
+  tokens_tolower() |>
+  tokens_remove(stopwords("english")) |>
+  dfm()
+
+par(mar = c(t = 1.5,r = 1.5, b = 3.5, l = 1.5), bg = "white", family = "Times")
+
+textplot_wordcloud(nube_combinada,
+                   max_words = 100,
+                   color = brewer.pal(8, "Dark2"),
+                   min_count = 3,
+                   scale = c(5, 0.5),
+                   random_order = FALSE)
+
+
+title(main = "Nube de palabras del último álbum\ncombinado de las cinco artistas",
+      cex.main = 1.2,
+      font.main = 2,
+      col.main = "black",
+      line = 1
+      )
+
+title(
+    sub = "Artistas: Ariana Grande, Beyoncé, Billie Eilish, Rihanna y Lady Gaga",
+    cex.sub = 0.8,
+    font.sub = 3,
+    col.sub = "gray40",
+    line = -1
+    )
 ```
 
 #Actividad 3: Haga una nube de palabras de las canciones del último disco de Drake, Justin Bieber, Eminem, Ed Sheeran y Post Malone por separado, i.e. una nube por artista.
 ```{r}
+# Reutilizamos la función definida en la actividad 1
+lapply(artistas_2, generar_nube)
 
 ```
 
 #Actividad 4: Haga una nube de palabras de las canciones del último disco de Drake, Justin Bieber, Eminem, Ed Sheeran y Post Malone combinados, i.e. una única nube.
 ```{r}
+# Obtenemos las letras combinadas
+letras_combinadas <- lapply(artistas_2, function(df) {
+  ultimo_album <- df |>
+    dplyr::filter(!is.na(Album)) |>
+    head(1) |>
+    pull(Album)
 
+  letras <- df |>
+    dplyr::filter(Album %in% ultimo_album) |>
+    pull(Lyric)
+
+  letras <- gsub("'", "", letras)
+  return(letras)
+}) |> unlist()
+
+# Creamos la nube combinada
+nube_combinada <- letras_combinadas |>
+  corpus() |>
+  tokens(remove_punct = TRUE, remove_numbers = TRUE, remove_separators = TRUE, remove_symbols = TRUE) |>
+  tokens_tolower() |>
+  tokens_remove(stopwords("english")) |>
+  dfm()
+
+par(mar = c(t = 1.5,r = 1.5, b = 3.5, l = 1.5), bg = "white", family = "Times")
+
+textplot_wordcloud(nube_combinada,
+                   max_words = 100,
+                   color = brewer.pal(8, "Dark2"),
+                   min_count = 3,
+                   scale = c(7, 0.5),
+                   random_order = FALSE)
+
+
+title(main = "Nube de palabras del último álbum\ncombinado de los cinco artistas",
+      cex.main = 1.2,
+      font.main = 2,
+      col.main = "black",
+      line = 1
+      )
+
+title(
+    sub = "Artistas: Drake, Justin Bieber, Eminem, Ed Sheeran y Post Malone",
+    cex.sub = 0.8,
+    font.sub = 3,
+    col.sub = "gray40",
+    line = -1
+    )
 ```
 
 #Actividad 5: Haga una nube de palabras de las canciones de los últimos 3 discos de BTS combinados, i.e. una única nube.
