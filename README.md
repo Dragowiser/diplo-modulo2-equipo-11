@@ -3,8 +3,7 @@ Este proyecto forma parte del módulo de programacion del diplomado para ciencia
 
 
 ## Introducción / Objetivo del Proyecto  
-El propósito de este proyecto es ________.  
-(Describe los objetivos principales del proyecto y su posible impacto cívico. Limítalo a un párrafo breve de 3 a 6 oraciones.)
+El propósito de este proyecto es emplear técnicas de programación usando R para analizar datos reales, obtener conclusiones, evaluar si las acciones se correlacionan con los datos y generar interpretaciones significativas, así como proponer posibles planes de acción.
 
 
 
@@ -19,7 +18,8 @@ El propósito de este proyecto es ________.
 - Estadística inferencial  
 - Estadística descriptiva
 - Modelo no parametricos y de regresion. 
-- Visualización de datos  
+- Visualización de datos  y datos faltantes
+
 
 ##  🔧 Tecnologías  
 - R  
@@ -32,23 +32,39 @@ El propósito de este proyecto es ________.
 ## 📊 Descripción del Proyecto  
 Este proyecto incluye el análisis de tres conjuntos de datos independientes:
 
-1. **Análisis de la Prueba de Bechdel**  
-   - ¿Qué tan frecuente es que las películas pasen la prueba?  
-   - Relación con año, presupuesto, género.
-   
-   **imagenes graficas**
+1. **Análisis exploratorio de Vuelos y Aeropuertos**
 
-2. **Seguridad en Aerolíneas**  
-   - Análisis por aerolínea y década de incidentes.  
-   - Visualización de cambios en la seguridad aérea a lo largo del tiempo.
+### Análisis exploratorio de Vuelos y Aeropuertos
+
+Para realizar este análisis se nos proporcionó una base de datos sobre los vuelos registrados en los aeropuertos de la ciudad de Nueva York durante el año 2013. Esta base incluye las siguientes tablas:
+
+- La tabla `airlines` contiene información sobre las aerolíneas.
+- La tabla `aeropuertos` contiene información sobre diferentes aeropuertos.
+- La tabla `planes` describe las características de los aviones.
+- La tabla `clima` contiene datos meteorológicos por hora en los aeropuertos.
+- La tabla `vuelos` contiene datos sobre más de 300,000 vuelos desde NYC en el año 2013.
+
+El objetivo de este análisis fue responder diversas preguntas para entender la dinámica de los aeropuertos y el comportamiento del tráfico aéreo. Algunas de las preguntas que pudimos abordar fueron:
+
+- ¿Qué aerolíneas sufrían los mayores retrasos?
+- ¿El clima afectaba la llegada o salida de los aviones?
+- ¿Qué aerolíneas salían o llegaban con mayor frecuencia a los aeropuertos?
+- ¿Cuáles eran los destinos principales?
+- ¿Cómo variaban los retrasos entre aerolíneas?
+
+Esta información puede ser útil para un administrador aeroportuario o para alguien interesado en invertir en una compañía aérea.
+
+
+
+2. **Titulo**  
+   
 
   **imagenes graficas**
 
-3. **Calidad del Café**  
-   - Análisis sensorial (acidez, aroma, cuerpo, etc.) vs. calificación global.  
-   - Exploración por país y tipo de procesamiento.
+3. **Titulo**  
+   
 
-**imagenes graficas**
+  **imagenes graficas**
 
 
 También se aplicaron procesos de limpieza, visualización y modelado básico para extraer conclusiones útiles de cada conjunto de datos.

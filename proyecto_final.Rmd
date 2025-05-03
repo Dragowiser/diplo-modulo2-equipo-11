@@ -52,8 +52,8 @@ library(RColorBrewer) #Paleta de colores
 
 # Rutas que vamos a trabajar, cada quien tendra una ruta diferente
 
-#setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data")
-setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_2/diplo-modulo2-equipo-11")
+setwd("C:/Users/ferna/Documents/Proyectos_Diplomado/diplo-modulo2-equipo-11/Data")
+#setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_2/diplo-modulo2-equipo-11")
 #setwd("/Users/bryantcanseco/Desktop/UNAM/Diplomados/Ciencia de Datos- UNAM/diplo-modulo2-equipo-11/Data")
 
 ```
@@ -62,8 +62,8 @@ setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_2/diplo-m
 
 ```{r Data}
 
-#setwd("C:/Users/ferna/Documents/Diplomado_Data_Sience/Proyectos/diplo-modulo2-equipo-11/Data")
-setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_2/diplo-modulo2-equipo-11/Data")
+setwd("C:/Users/ferna/Documents/Diplomado_Data_Sience/Proyectos/diplo-modulo2-equipo-11/Data")
+#setwd("C:/Users/diego/Documents/Ingeniería_Ambiental/Diplomado/Modulo_2/diplo-modulo2-equipo-11/Data")
 #setwd("/Users/bryantcanseco/Desktop/UNAM/Diplomados/Ciencia de Datos- UNAM/diplo-modulo2-equipo-11/Data")
 conn <- DBI::dbConnect(RSQLite::SQLite(), "vuelos.db")
 
